@@ -34,6 +34,6 @@ class GradCAM:
         with tf.GradientTape() as tape:
             inputs = tf.cast(image, tf.float32)
             convOutputs, predictions = gradModel(inputs)
-            loss = predictions[L, self.classIdx]
+            loss = predictions[:, self.classIdx]
 
         grads = tape.gradient(loss, convOutputs)
