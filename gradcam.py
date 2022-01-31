@@ -21,8 +21,8 @@ class GradCAM:
         for layer in reversed(self.model.layers):
             if len(layer.output_shape)==4:
                 return layer.name
-            else: 
-                raise ValueError("Could not find layer with 4D output")
+     
+        raise ValueError("Could not find layer with 4D output")
 
     def computeHeatmap(self, image, eps=1e-8):
         gradModel = Model(
@@ -33,13 +33,15 @@ class GradCAM:
 
         with tf.GradientTape() as tape:
             inputs = tf.cast(image, tf.float32)
-            convOutputs, predictions = gradModel(inputs)
+            (convOutputs, predictions) = gradModel(inputs)
             loss = predictions[:, self.classIdx]
 
         grads = tape.gradient(loss, convOutputs)
         castConvOutputs = tf.cast(convOutputs>0, 'float32')
         castGrads = tf.cast(grads>0, 'float32')
         guidedGrads = castConvOutputs * castGrads * grads
+        guidedGrads = guidedGrads[0]
+        convOutputs = convOutputs[0]
 
         # Compute average of gradient values to use as weights
         weights = tf.reduce_mean(guidedGrads, axis=(0,1))
@@ -56,7 +58,7 @@ class GradCAM:
         heatmap = (heatmap*255).astype('uint8')
         return heatmap
         
-    def overlayHeatmap(self, heatmap, image, alpha=0.5, colormap=cv.COLORMAP_VIRIDIS):
+    def overlayHeatmap(self, heatmap, image, alpha=0.5, colormap=cv.COLORMAP_TURBO):
         heatmap = cv.applyColorMap(heatmap, colormap)
         output = cv.addWeighted(image, alpha, heatmap, 1-alpha, 0)
         return (heatmap, output)
