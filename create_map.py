@@ -6,6 +6,8 @@ import numpy as np
 import argparse
 import imutils
 import cv2 as cv
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # Create argument parser and parse arguments
 ap = argparse.ArgumentParser()
@@ -37,6 +39,7 @@ print(f'{label}: {prob*100:.2f}')
 cam = GradCAM(model, i)
 heatmap = cam.computeHeatmap(img)
 heatmap = cv.resize(heatmap, (orig.shape[1], orig.shape[0]))
+# print(type(heatmap))
 (heatmap, output) = cam.overlayHeatmap(heatmap, orig, alpha=0.5)
 # draw label on output
 cv.rectangle(output, (0,0), (340,40), (0,0,0), -1)
